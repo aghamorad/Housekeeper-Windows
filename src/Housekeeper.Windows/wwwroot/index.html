@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Housekeeper for Windows</title>
+<style>
+  :root {
+    --bg: #1e0c10; --sidebar: #261015; --card: #2f161b; --card-hover: #3b1c22;
+    --ink: #f6ede8; --muted: #c9b3ac; --accent: #c9463e; --accent-hi: #e05d54;
+    --line: rgba(255,255,255,0.10); --ok: #46c278; --warn: #eab34b;
+    --font-scale: 1;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: calc(15px * var(--font-scale)); }
+  body { margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--ink);
+    font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+  aside { width: 232px; background: var(--sidebar); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; padding: 16px 12px; gap: 6px; }
+  .brand { font-size: 1.05rem; font-weight: 700; padding: 6px 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-btn { background: transparent; color: var(--muted); border: 0; border-radius: 8px;
+    text-align: left; padding: 9px 12px; font-size: 0.92rem; cursor: pointer; transition: background 140ms, color 140ms, transform 120ms; }
+  .nav-btn:hover { background: var(--card-hover); color: var(--ink); }
+  .nav-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+  .nav-btn:active { transform: scale(0.98); }
+  .foot { margin-top: auto; font-size: 0.78rem; color: var(--muted); padding: 10px 10px 4px; border-top: 1px solid var(--line); }
+  main { flex: 1; overflow-y: auto; padding: 26px 32px; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 1.6rem; font-weight: 700; }
+  .sub { margin: 0 0 20px; color: var(--muted); font-size: 0.92rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; cursor: pointer;
+    text-align: left; color: var(--ink); transition: transform 140ms, background 140ms, border-color 140ms; }
+  .tile:hover { background: var(--card-hover); border-color: var(--accent-hi); transform: translateY(-2px); }
+  .tile b { display: block; font-size: 0.95rem; margin-bottom: 4px; }
+  .tile span { font-size: 0.8rem; color: var(--muted); }
+  button.btn { background: var(--card-hover); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: transform 120ms, background 140ms; }
+  button.btn:hover { border-color: var(--accent-hi); }
+  button.btn:active { transform: scale(0.97); }
+  button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.btn.primary:hover { background: var(--accent-hi); }
+  input, select { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 10px; font-size: 0.9rem; width: 100%; }
+  pre { background: #14070a; color: #f1dcd5; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 0.82rem; font-family: Consolas, monospace; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status { font-size: 0.86rem; color: var(--ok); margin-top: 8px; }
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 180ms ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+  <aside>
+    <div class="brand"><span>Housekeeper</span><span style="font-size:0.72rem;color:var(--muted)">Win</span></div>
+    <button class="nav-btn active" data-tab="home">Dashboard</button>
+    <button class="nav-btn" data-tab="vpn">Cloudflare Clean VPN</button>
+    <button class="nav-btn" data-tab="clean">Clean Up (Quarantine)</button>
+    <button class="nav-btn" data-tab="space">Space Lens</button>
+    <button class="nav-btn" data-tab="speed">Speed Test</button>
+    <button class="nav-btn" data-tab="dns">DNS Switcher</button>
+    <button class="nav-btn" data-tab="about">Updates &amp; More Apps</button>
+    <div class="foot">Made by Morad · v0.1.0<br/>Ctrl+ / Ctrl- to zoom text</div>
+  </aside>
+  <main><div class="wrap">
+    <section id="home" class="screen active">
+      <h1>Housekeeper for Windows</h1>
+      <p class="sub" id="sysLine">Loading PC details…</p>
+      <div class="grid4">
+        <button class="tile" onclick="go('vpn')"><b>Clean VPN</b><span>AmneziaWG WARP &amp; Clean IPs</span></button>
+        <button class="tile" onclick="go('clean')"><b>Clean Up</b><span>Safe Quarantine, never deletes</span></button>
+        <button class="tile" onclick="go('speed')"><b>Speed Test</b><span>Download, upload &amp; ping</span></button>
+        <button class="tile" onclick="go('space')"><b>Space Lens</b><span>Real folder sizes</span></button>
+      </div>
+      <div class="card">
+        <b>Zero-Risk Design</b>
+        <p class="sub" style="margin:6px 0 0">Cleaning moves files to your personal <code>Housekeeper Quarantine</code> folder so you can restore anything. Press <b>Ctrl+</b> or <b>Ctrl-</b> anytime to scale text size.</p>
+      </div>
+    </section>
+
+    <section id="vpn" class="screen">
+      <h1>Cloudflare Clean VPN</h1>
+      <p class="sub">Generate AmneziaWG WARP configs (8.6.112.x Iran endpoints + QUIC I1 disguise + Amnezia 3.0/3.1) or scan Clean Cloudflare IPs for VLESS.</p>
+      <div class="card">
+        <b>1. AmneziaWG WARP (Free — No Cloudflare Account Needed)</b>
+        <div class="row" style="margin:10px 0">
+          <select id="warpEp" style="max-width:300px"></select>
+          <label><input type="checkbox" id="warpHeavy" style="width:auto" /> Heavy Junk Packets</label>
+          <button class="btn primary" onclick="genWarp()">Generate Fresh WARP Config</button>
+        </div>
+        <div id="warpStatus" class="status"></div>
+        <pre id="warpOut" style="display:none"></pre>
+        <div id="warpActions" class="row" style="display:none;margin-top:8px">
+          <button class="btn primary" onclick="copyText('warpOut')">Copy Config</button>
+          <button class="btn" onclick="downloadWarp()">Save .conf</button>
+        </div>
+      </div>
+      <div class="card">
+        <b>2. Cloudflare API Token &amp; Clean IP Scanner</b>
+        <div class="row" style="margin:10px 0">
+          <input id="cfToken" type="password" placeholder="Paste Cloudflare API Token (optional)" style="flex:1" />
+          <button class="btn" onclick="verifyCf()">Verify Token</button>
+          <button class="btn primary" onclick="scanIps()">Scan Clean IPs (VPN Off)</button>
+        </div>
+        <div id="cfStatus" class="status"></div>
+        <div id="ipList" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <section id="clean" class="screen">
+      <h1>Clean Up (Safe Quarantine)</h1>
+      <p class="sub">Moves temporary clutter into <code>Housekeeper Quarantine</code>. Nothing is permanently deleted.</p>
+      <div class="card">
+        <div class="row">
+          <button class="btn primary" onclick="scanJunk()">Scan Temp Junk</button>
+          <button class="btn" onclick="quarantineAll()">Move All Listed to Quarantine</button>
+        </div>
+        <div id="cleanStatus" class="status"></div>
+        <div id="cleanList" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <section id="space" class="screen">
+      <h1>Space Lens</h1>
+      <p class="sub">Browse real folder and file sizes in your Windows user folder.</p>
+      <div class="card">
+        <button class="btn primary" onclick="loadSpace()">Scan Home Folder</button>
+        <div id="spaceList" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <section id="speed" class="screen">
+      <h1>Speed Test</h1>
+      <p class="sub">Live Cloudflare Edge download, upload, ping, and jitter test.</p>
+      <div class="card">
+        <button class="btn primary" onclick="runSpeed()">Run Speed Test</button>
+        <div id="speedOut" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <section id="dns" class="screen">
+      <h1>DNS Switcher (Windows)</h1>
+      <p class="sub">Iranian anti-sanction and default router DNS presets.</p>
+      <div class="card" id="dnsList"></div>
+    </section>
+
+    <section id="about" class="screen">
+      <h1>Updates &amp; More Apps by Morad</h1>
+      <div class="card">
+        <button class="btn primary" onclick="checkUpdate()">Check for Housekeeper Updates</button>
+        <div id="updateOut" class="status"></div>
+      </div>
+      <div class="card">
+        <b>More Apps by Morad</b>
+        <p class="sub" style="margin-top:8px">
+          • <a style="color:var(--accent-hi)" href="https://github.com/aghamorad/Housekeeper" target="_blank">Housekeeper for macOS</a> (Apple Silicon &amp; Intel)<br/>
+          • <a style="color:var(--accent-hi)" href="https://github.com/aghamorad/Housekeeper-Mini" target="_blank">Housekeeper Mini</a> (Android &amp; Meta Quest)<br/>
+          • <a style="color:var(--accent-hi)" href="https://github.com/aghamorad/Housekeeper-Windows" target="_blank">Housekeeper for Windows</a>
+        </p>
+      </div>
+    </section>
+  </div></main>
+<script>
+const TOKEN = new URLSearchParams(location.search).get('token') || '';
+let zoom = 1.0;
+let lastJunk = [];
+async function api(path, body) {
+  const opts = { headers: { 'X-HK-Token': TOKEN } };
+  if (body) { opts.method = 'POST'; opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  const r = await fetch(path, opts);
+  return r.json();
+}
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+}
+document.querySelectorAll('.nav-btn').forEach(b => b.onclick = () => go(b.dataset.tab));
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey && (e.key === '=' || e.key === '+')) { e.preventDefault(); zoom = Math.min(1.4, zoom + 0.08); document.documentElement.style.setProperty('--font-scale', zoom); }
+  if (e.ctrlKey && e.key === '-') { e.preventDefault(); zoom = Math.max(0.85, zoom - 0.08); document.documentElement.style.setProperty('--font-scale', zoom); }
+  if (e.ctrlKey && e.key === '0') { e.preventDefault(); zoom = 1.0; document.documentElement.style.setProperty('--font-scale', zoom); }
+});
+function fmt(b) { if (b > 1e9) return (b/1e9).toFixed(2)+' GB'; if (b > 1e6) return (b/1e6).toFixed(1)+' MB'; return (b/1e3).toFixed(0)+' KB'; }
+async function init() {
+  const info = await api('/api/info');
+  document.getElementById('sysLine').textContent = `${info.machine} · ${info.os} · ${info.arch} · Quarantine: ${info.quarantine}`;
+  const sel = document.getElementById('warpEp');
+  (info.warpEndpoints || []).forEach(ep => { const o = document.createElement('option'); o.value = ep; o.textContent = ep; sel.appendChild(o); });
+  document.getElementById('dnsList').innerHTML = (info.dnsPresets || []).map(d =>
+    `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${d.name}</b> <span style="color:var(--muted)">${d.primary} ${d.secondary}</span><div style="font-size:0.8rem;color:var(--muted)">${d.description}</div></div>`
+  ).join('');
+  if (location.hash) go(location.hash.slice(1));
+}
+async function genWarp() {
+  document.getElementById('warpStatus').textContent = 'Generating Curve25519 keys & registering with Cloudflare WARP…';
+  const res = await api('/api/warp', { endpoint: document.getElementById('warpEp').value, heavyJunk: document.getElementById('warpHeavy').checked });
+  document.getElementById('warpStatus').textContent = res.message || res.error;
+  if (res.confText) { const pre = document.getElementById('warpOut'); pre.textContent = res.confText; pre.style.display = 'block'; document.getElementById('warpActions').style.display = 'flex'; }
+}
+function copyText(id) { navigator.clipboard.writeText(document.getElementById(id).textContent); document.getElementById('warpStatus').textContent = 'Copied to clipboard.'; }
+function downloadWarp() {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([document.getElementById('warpOut').textContent], {type:'text/plain'}));
+  a.download = 'housekeeper-amnezia-warp.conf'; a.click();
+}
+async function verifyCf() {
+  const res = await api('/api/cf/verify', { token: document.getElementById('cfToken').value });
+  document.getElementById('cfStatus').textContent = res.error ? res.error : `Connected: ${res.accountName} (${res.subdomain || 'no subdomain'}). Workers: ${(res.workers||[]).join(', ') || 'none'}`;
+}
+async function scanIps() {
+  document.getElementById('cfStatus').textContent = 'Scanning 24 Cloudflare IPv4 addresses…';
+  const list = await api('/api/cf/scan');
+  document.getElementById('cfStatus').textContent = `Found ${list.length} clean IPs.`;
+  document.getElementById('ipList').innerHTML = list.map(i => `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><code>${i.ip}</code> · <b>${i.latencyMs} ms</b> · ${i.quality}</div>`).join('');
+}
+async function scanJunk() {
+  lastJunk = await api('/api/clean/scan');
+  document.getElementById('cleanStatus').textContent = `Found ${lastJunk.length} temp items.`;
+  document.getElementById('cleanList').innerHTML = lastJunk.slice(0, 30).map(i => `<div style="padding:4px 0;font-size:0.85rem">${i.name} — <b>${fmt(i.sizeBytes)}</b></div>`).join('');
+}
+async function quarantineAll() {
+  if (!lastJunk.length) return;
+  const res = await api('/api/clean/quarantine', { paths: lastJunk.map(i => i.path) });
+  document.getElementById('cleanStatus').textContent = `Moved ${res.moved} items safely to ${res.quarantine}.`;
+}
+async function loadSpace() {
+  const list = await api('/api/space');
+  document.getElementById('spaceList').innerHTML = list.slice(0, 30).map(i => `<div style="padding:5px 0;border-bottom:1px solid var(--line)">${i.isDirectory ? '[Folder]' : '[File]'} ${i.name} — <b>${fmt(i.sizeBytes)}</b></div>`).join('');
+}
+async function runSpeed() {
+  document.getElementById('speedOut').textContent = 'Testing Cloudflare Edge speed…';
+  const r = await api('/api/speed');
+  document.getElementById('speedOut').innerHTML = `<b>${r.verdict}</b><br/>Download: <b>${r.downloadMbps} Mbps</b> · Upload: <b>${r.uploadMbps} Mbps</b> · Ping: <b>${r.pingMs} ms</b> (Jitter ${r.jitterMs} ms)`;
+}
+async function checkUpdate() {
+  const r = await api('/api/update');
+  document.getElementById('updateOut').textContent = r.message;
+}
+init();
+</script>
+</body>
+</html>

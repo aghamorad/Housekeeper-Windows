@@ -1,0 +1,29 @@
+name: Build Housekeeper for Windows
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Run Core Unit Tests
+        run: dotnet run --project tests/Housekeeper.Core.Tests/Housekeeper.Core.Tests.csproj -c Release
+      - name: Publish Single-File Windows x64 Executable
+        run: dotnet publish src/Housekeeper.Windows/Housekeeper.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o dist/Housekeeper-Windows-x64
+      - name: Zip Artifact
+        shell: pwsh
+        run: Compress-Archive -Path dist/Housekeeper-Windows-x64/* -DestinationPath dist/Housekeeper-Windows-x64.zip
+      - name: Upload Windows Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Housekeeper-Windows-x64
+          path: dist/Housekeeper-Windows-x64.zip
