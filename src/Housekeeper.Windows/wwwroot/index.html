@@ -161,6 +161,16 @@
       </div>
     </section>
   </div></main>
+  <div id="updateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;z-index:50">
+    <div class="card" style="max-width:440px;width:90%;margin:0;box-shadow:0 20px 50px rgba(0,0,0,0.45)">
+      <h1 style="font-size:1.25rem;margin-bottom:6px">Update Available</h1>
+      <p id="updateModalMsg" class="sub" style="margin-bottom:16px"></p>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn" onclick="document.getElementById('updateModal').style.display='none'">Later</button>
+        <a id="updateModalLink" class="btn primary" style="text-decoration:none" target="_blank" onclick="document.getElementById('updateModal').style.display='none'">Download Update</a>
+      </div>
+    </div>
+  </div>
 <script>
 const TOKEN = new URLSearchParams(location.search).get('token') || '';
 let zoom = 1.0;
@@ -191,6 +201,7 @@ async function init() {
     `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${d.name}</b> <span style="color:var(--muted)">${d.primary} ${d.secondary}</span><div style="font-size:0.8rem;color:var(--muted)">${d.description}</div></div>`
   ).join('');
   if (location.hash) go(location.hash.slice(1));
+  checkUpdate(true);
 }
 async function genWarp() {
   document.getElementById('warpStatus').textContent = 'Generating Curve25519 keys & registering with Cloudflare WARP…';
@@ -232,9 +243,14 @@ async function runSpeed() {
   const r = await api('/api/speed');
   document.getElementById('speedOut').innerHTML = `<b>${r.verdict}</b><br/>Download: <b>${r.downloadMbps} Mbps</b> · Upload: <b>${r.uploadMbps} Mbps</b> · Ping: <b>${r.pingMs} ms</b> (Jitter ${r.jitterMs} ms)`;
 }
-async function checkUpdate() {
+async function checkUpdate(silent = false) {
   const r = await api('/api/update');
   document.getElementById('updateOut').textContent = r.message;
+  if (r.updateAvailable) {
+    document.getElementById('updateModalMsg').textContent = `${r.message} (You are on v${r.currentVersion}.)`;
+    document.getElementById('updateModalLink').href = r.url;
+    document.getElementById('updateModal').style.display = 'flex';
+  }
 }
 init();
 </script>
